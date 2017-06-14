@@ -33,6 +33,7 @@ const char* password = "B0B4F9CC";
 
 char* firstrelay = "/home/f1/hall/r1";
 char* secondrelay = "/home/f1/hall/r2";
+char* devicetest = "/home/f1/hall/ping";
 
 
 WiFiClient wifiClient;
@@ -127,12 +128,20 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if(payload[0] == '1'){
      if(topicStr == firstrelay)
      {
-      digitalWrite(in1, HIGH);
+      //reverse logic low means ON and HIGH Means OFF
+      digitalWrite(in1, LOW);
+      client.publish("/home/f1/hall/r1/confirm", "on");
      }
+      else if(topicStr == devicetest)
+     {
+      
+      client.publish("/home/f1/hall/ping/confirm", "1");
+     }
+     
      else
      {
-       digitalWrite(in2, HIGH);
-       client.publish("/home/f1/hall/r2/confirm", "on");
+       digitalWrite(in2, LOW);
+       client.publish("/home/f1/hal/r2/confirm", "on");
      }
      
      
@@ -140,14 +149,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
    if(payload[0] == '0'){
      if(topicStr == firstrelay)
      {
-      digitalWrite(in1, LOW);
+      digitalWrite(in1, HIGH);
+       client.publish("/home/gf/gr/r1/confirm", "off");
      }
      else
      {
-       digitalWrite(in2, LOW);
-       client.publish("/home/f1/hall/r2/confirm", "off");
+       digitalWrite(in2, HIGH);
+       client.publish("/home/gf/gr/r2/confirm", "off");
      }
-     client.publish("/test/confirm", "off");
+     
   }
   //turn the light on if the payload is '1' and publish to the MQTT server a confirmation message
 
@@ -200,6 +210,7 @@ void reconnect() {
         Serial.print("\tMTQQ Connected");
         client.subscribe(firstrelay);
         client.subscribe(secondrelay);
+        client.subscribe(devicetest);
       }
 
       //otherwise print failed for debugging

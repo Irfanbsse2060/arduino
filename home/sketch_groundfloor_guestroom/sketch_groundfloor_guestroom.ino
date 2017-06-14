@@ -31,8 +31,9 @@ const char* password = "B0B4F9CC";
 //LED on ESP8266 GPIO2
 
 
-char* firstrelay = "/home/f1/hall/r1";
-char* secondrelay = "/home/f1/hall/r2";
+char* firstrelay = "/home/gf/gr/r1";
+char* secondrelay = "/home/gf/gr/r2";
+char* devicetest = "/home/gf/gr/ping";
 
 
 WiFiClient wifiClient;
@@ -97,7 +98,7 @@ void sensordata(){
    msg =  String(sensors.getTempCByIndex(0), DEC);
   
   msg.toCharArray(charBuf, 5);
-  client.publish("/home/f1/hall/temp", charBuf);
+  client.publish("/home/gf/gr/temp", charBuf);
 
   unsigned int AnalogValue;
   Serial.println("light is: ");
@@ -109,7 +110,7 @@ void sensordata(){
   msg.toCharArray(charBuf, 5);
    
   
-  client.publish("/home/f1/hall/light",charBuf);
+  client.publish("/home/gf/gr/light",charBuf);
   delay(3000);
 }
 
@@ -127,12 +128,20 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if(payload[0] == '1'){
      if(topicStr == firstrelay)
      {
-      digitalWrite(in1, HIGH);
+      //reverse logic low means ON and HIGH Means OFF
+      digitalWrite(in1, LOW);
+      client.publish("/home/gf/br/r1/confirm", "on");
      }
+      else if(topicStr == devicetest)
+     {
+      
+      client.publish("/home/gf/gr/ping/confirm", "1");
+     }
+     
      else
      {
-       digitalWrite(in2, HIGH);
-       client.publish("/home/f1/hall/r2/confirm", "on");
+       digitalWrite(in2, LOW);
+       client.publish("/home/gf/gr/r2/confirm", "on");
      }
      
      
@@ -140,14 +149,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
    if(payload[0] == '0'){
      if(topicStr == firstrelay)
      {
-      digitalWrite(in1, LOW);
+      digitalWrite(in1, HIGH);
+       client.publish("/home/gf/gr/r1/confirm", "off");
      }
      else
      {
-       digitalWrite(in2, LOW);
-       client.publish("/home/f1/hall/r2/confirm", "off");
+       digitalWrite(in2, HIGH);
+       client.publish("/home/gf/gr/r2/confirm", "off");
      }
-     client.publish("/test/confirm", "off");
+     
   }
   //turn the light on if the payload is '1' and publish to the MQTT server a confirmation message
 
@@ -200,6 +210,7 @@ void reconnect() {
         Serial.print("\tMTQQ Connected");
         client.subscribe(firstrelay);
         client.subscribe(secondrelay);
+        client.subscribe(devicetest);
       }
 
       //otherwise print failed for debugging
